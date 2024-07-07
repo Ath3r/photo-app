@@ -1,4 +1,4 @@
-import { RequestWithUser, User, UserJwt } from '../types';
+import { Permission, RequestWithUser, User, UserJwt } from '../types';
 import { AppConfig } from '../utils/config';
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
@@ -52,7 +52,7 @@ export const isAuthenticated = (
     if (!permissionType) {
       return next()
     }
-    const canAccess = dbUser?.role?.permissions.some(permission => {
+    const canAccess = dbUser?.role?.permissions.some((permission: Permission) => {
       return permission.type === permissionType;
     });
     if (!canAccess) {

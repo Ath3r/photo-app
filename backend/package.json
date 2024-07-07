@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon src/index.ts",
     "build": "tsc",
-    "start": "cross-env NODE_ENV=production npm run build && node dist/index.js",
+    "start": "cross-env NODE_ENV=production npm run build && node dist/src/index.js",
     "prisma:generate": "prisma generate",
     "prisma:generate:watch": "prisma generate --watch",
     "prisma:migrate": "prisma migrate dev --skip-seed",

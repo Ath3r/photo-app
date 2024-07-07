@@ -25,7 +25,8 @@ async function main() {
     return;
   }
 
-  const permissionsToCreate = permissions.filter(permission => !permissionsExists.find(p => p.type === permission.type));
+  const permissionsToCreate = permissions.filter(permission => !permissionsExists.find(
+    (p: any) => p.type === permission.type));
   await prisma.permission.createMany({
     data: permissionsToCreate.map(permission => ({
       type: permission.type,
