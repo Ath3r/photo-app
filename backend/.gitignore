@@ -1,0 +1,12 @@
+node_modules
+# Keep environment variables out of version control
+.env
+
+/dist
+/build
+/logs
+public/*
+package-lock.json
+
+# MacOS
+.DS_Store
