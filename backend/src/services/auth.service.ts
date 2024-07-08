@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { AppConfig } from '../utils/config';
 import { encryptPassword, comparePassword } from '../utils/common';
 import { CreateUserInput, LoginInput } from '../types';
+import defaultPermission from '../utils/permissions/default';
 
 const signup = async (data: CreateUserInput) : Promise<[any| null, string | null]> => {
   const { password } = data;
@@ -21,6 +22,18 @@ const signup = async (data: CreateUserInput) : Promise<[any| null, string | null
       password: hashedPassword
     },
   });
+  // create default roles
+  await prisma.role.create({
+    data: {
+      userId: user.id,
+      permissions: {
+        create: defaultPermission.map(permission => ({
+          type: permission.type,
+          description: permission.description,
+        })),
+      },
+    },
+  });
   // create jwt token
   const token = jwt.sign({
     id: user.id,
@@ -28,9 +41,13 @@ const signup = async (data: CreateUserInput) : Promise<[any| null, string | null
   }, AppConfig.JWT_SECRET as string, {
     expiresIn: AppConfig.JWT_EXPIRATION
   });
+  const nonPassUser = {
+    ...user,
+    password: undefined,
+  }
   return [{
     token,
-    ...user
+    ...nonPassUser
   }, null];
 }
 
@@ -70,9 +87,13 @@ const login = async (data: LoginInput) : Promise<[any| null, string | null]> => 
     }, AppConfig.JWT_SECRET as string, {
       expiresIn: AppConfig.JWT_EXPIRATION
     });
+    const nonPassUser = {
+      ...user,
+      password: undefined,
+    }
     return [{
       token,
-      ...user
+      ...nonPassUser
     }, null];
   }
   return [null, 'Invalid email or password'];

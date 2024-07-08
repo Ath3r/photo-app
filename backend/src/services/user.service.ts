@@ -1,6 +1,7 @@
 import { prisma } from '../db';
 import { encryptPassword } from '../utils/common';
 import { CreateUserInput } from '../types';
+import defaultPermission from '../utils/permissions/default';
 
 const getAll = async () : Promise<[any| null, string | null]> => {
   const users = await prisma.user.findMany({
@@ -42,6 +43,17 @@ const createUser = async (data: CreateUserInput) : Promise<[any| null, string | 
     data: {
       ...data,
       password: hashedPassword
+    },
+  });
+  await prisma.role.create({
+    data: {
+      userId: user.id,
+      permissions: {
+        create: defaultPermission.map(permission => ({
+          type: permission.type,
+          description: permission.description,
+        })),
+      },
     },
   });
   return [user, null];
