@@ -12,16 +12,6 @@
           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
         >
       </div>
-      <div>
-        <select
-          v-model="roleFilter"
-          class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-        >
-          <option value="">All Roles</option>
-          <option value="admin">Admin</option>
-          <option value="user">User</option>
-        </select>
-      </div>
     </div>
 
     <!-- Users table -->
@@ -31,7 +21,6 @@
           <tr>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posts</th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
           </tr>
@@ -51,15 +40,10 @@
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm text-gray-900">{{ user.email }}</div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                {{ user.role }}
-              </span>
-            </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               {{ user.postCount }}
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium flex text-center">
               <button @click="editUser(user)" class="text-indigo-600 hover:text-indigo-900 mr-2">Edit</button>
               <button v-if="currentUser.role === 'admin'" @click="deleteUser(user.id)" class="text-red-600 hover:text-red-900">Delete</button>
             </td>
@@ -81,7 +65,7 @@
           results
         </p>
       </div>
-      <div>
+      <div cla>
         <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
           <button
             @click="prevPage"
@@ -101,9 +85,44 @@
       </div>
     </div>
 
-    <!-- Edit User Modal (you can create a separate component for this) -->
-    <div v-if="showEditModal" class="fixed z-10 inset-0 overflow-y-auto">
-      <!-- Modal content -->
+    <!-- Edit User Modal -->
+    <div v-if="showEditModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+              Edit User Permissions
+            </h3>
+            <div class="mt-4">
+              <p class="text-sm text-gray-500 mb-2">User: {{ editingUser?.name }}</p>
+              <div class="space-y-2">
+                <div v-for="permission in allPermissions" :key="permission" class="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    :id="permission" 
+                    :value="permission" 
+                    v-model="selectedPermissions"
+                    class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  >
+                  <label :for="permission" class="ml-2 block text-sm text-gray-900">
+                    {{ permission }}
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <button @click="savePermissions" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+              Save Changes
+            </button>
+            <button @click="closeEditModal" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -123,12 +142,63 @@ interface User {
 // Mock current user (replace with actual auth logic)
 const currentUser = ref({ role: 'admin' })
 
-// Mock users data (replace with API call)
+const editingUser = ref<User | null>(null)
+const selectedPermissions = ref<string[]>([])
+
+// List of all  permissions
+const allPermissions = [
+  'create_post',
+  'edit_post',
+  'delete_post',
+  'view_users',
+  'edit_users',
+  'delete_users',
+  'manage_settings'
+]
+
 const users = ref<User[]>([
-  { id: 1, name: 'John Doe', email: 'john@example.com', role: 'admin', avatar: 'https://i.pravatar.cc/150?img=1', postCount: 15 },
-  { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'user', avatar: 'https://i.pravatar.cc/150?img=2', postCount: 8 },
-  // Add more mock users...
+  { 
+    id: 1, 
+    name: 'John Doe', 
+    email: 'john@example.com', 
+    role: 'admin', 
+    avatar: 'https://i.pravatar.cc/150?img=1', 
+    postCount: 15,
+    permissions: ['create_post', 'edit_post', 'delete_post', 'view_users', 'edit_users', 'delete_users', 'manage_settings']
+  },
+  { 
+    id: 2, 
+    name: 'Jane Smith', 
+    email: 'jane@example.com', 
+    role: 'user', 
+    avatar: 'https://i.pravatar.cc/150?img=2', 
+    postCount: 8,
+    permissions: ['create_post', 'edit_post', 'delete_post']
+  },
 ])
+
+
+
+const closeEditModal = () => {
+  showEditModal.value = false
+  editingUser.value = null
+  selectedPermissions.value = []
+}
+
+const savePermissions = () => {
+  if (editingUser.value) {
+    const userIndex = users.value.findIndex(u => u.id === editingUser.value!.id)
+    if (userIndex !== -1) {
+      users.value[userIndex] = {
+        ...users.value[userIndex],
+        permissions: selectedPermissions.value
+      }
+      // In a real application, you would make an API call here to update the user's permissions
+      console.log(`Updated permissions for user ${editingUser.value.name}:`, selectedPermissions.value)
+    }
+  }
+  closeEditModal()
+}
 
 const searchQuery = ref('')
 const roleFilter = ref('')
