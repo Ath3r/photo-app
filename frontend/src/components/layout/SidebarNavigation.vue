@@ -31,7 +31,7 @@ const toggleSidebar = () => {
 }
 
 const logout = () => {
-  store.dispatch('auth/logout')
+  localStorage.removeItem('token')
   router.push('/login')
 }
 
