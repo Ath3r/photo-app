@@ -3,14 +3,33 @@ import { sendError, sendSuccess } from "../../response";
 import { StatusCodes } from "http-status-codes";
 import { RequestWithUser } from "../../types";
 import postService from "../../services/post.service";
+import { prisma } from "../../db";
 
 export default {
   getAllPosts: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const user = (
-        req as RequestWithUser
-      ).user;
-      const canViewAllPosts = user?.role?.permissions.some(permission => {
+      const user = await prisma.user.findFirst({
+        where: {
+          id: (req as RequestWithUser).user.id
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: {
+            select: {
+              id: true,
+              permissions: {
+                select: {
+                  type: true,
+                  description: true
+                }
+              }
+            }
+          }
+        }
+      });
+      const canViewAllPosts = user?.role?.permissions.some((permission: any) => {
         return permission.type === 'post:readAll';
       });
       const [data, error] = await postService.getAllPosts((

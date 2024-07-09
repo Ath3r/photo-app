@@ -3,13 +3,13 @@ import { CreatePostInput } from '../types';
 
 const getAllPosts = async (
   userId: number,
-  getOwnPostsOnly: boolean = false,
+  canViewAllPosts: boolean = false,
   sort: object = {
     createdAt: 'desc',
   },
 ) : Promise<[any| null, string | null]> => {
   const query: any = {};
-  if (getOwnPostsOnly) {
+  if (!canViewAllPosts) {
     query.userId = userId;
   }
   const posts = await prisma.post.findMany({
