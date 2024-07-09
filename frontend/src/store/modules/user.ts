@@ -1,15 +1,17 @@
-import { getProfile, login, signup } from "../../apis"
+import * as api from "../../apis"
 import { useToast } from "vue-toastification";
 
 
 interface State {
   user: any,
   users: any[],
+  isLoading: boolean,
 }
 
 const initialState: State = {
   user: null,
   users: [],
+  isLoading: false,
 }
 
 const toast = useToast()
@@ -24,11 +26,14 @@ export const userStore = {
     setUsers(state: State, users: any[]) {
       state.users = users
     },
+    setLoading(state: State, isLoading: boolean) {
+      state.isLoading = isLoading
+    },
   },
   actions: {
     async login(context: any, user: any, ) {
       try {
-        const { data, error } = await login(user)
+        const { data, error } = await api.login(user)
         if (error) {
           toast.error(`Unable to login: ${error}`)
           localStorage.removeItem('token')
@@ -47,7 +52,7 @@ export const userStore = {
     },
     async signup(context: any, user: any) {
       try {
-        const { data, error } = await signup(user)
+        const { data, error } = await api.signup(user)
         if (error) {
           toast.error(`Unable to login: ${error}`)
           console.log(error)
@@ -64,7 +69,7 @@ export const userStore = {
     },
     async fetchUser(context: any) {
       try {
-        const { data, error } = await getProfile()
+        const { data, error } = await api.getProfile()
         if (error) {
           console.log(error)
           return
@@ -76,10 +81,42 @@ export const userStore = {
         return null
       }
     },
-  },
-  getters: {
-    isAuthenticated: (state: State) => localStorage.getItem('token') && state.user.id,
-    user: (state: State) => state.user,
-    users: (state: State) => state.users,
+    async fetchUsers(context: any) {
+      try {
+        context.commit('setLoading', true)
+        const { data, error } = await api.getUsers()
+        if (error) {
+          console.log(error)
+          return
+        }
+        context.commit('setLoading', false)
+        context.commit('setUsers', data)
+        return data
+      } catch (error) {
+        context.commit('setLoading', false)
+        console.error(error)
+        return null
+      }
+    },
+    async updateUser(context: any, user: User) {
+      try {
+        context.commit('setLoading', true)
+        const { data, error } = await api.updateUser(user)
+        if (error) {
+          toast.error(`Unable to update user: ${error}`)
+          console.log(error)
+          context.commit('setLoading', false)
+          return
+        }
+        await context.dispatch('fetchUsers')
+        toast.success(`User ${user.email} updated successfully`)
+        return data
+      } catch (error) {
+        toast.error(`Unable to update user: ${error}`)
+        console.error(error)
+        context.commit('setLoading', false)
+        return null
+      }
+    },
   },
 }

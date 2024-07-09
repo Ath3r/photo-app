@@ -16,7 +16,7 @@
         <option value="desc" :selected="createdAt === 'dsc'">Newest First</option>
         <option value="asc" :selected="createdAt === 'asc'">Oldest First</option>
       </select>
-      <button @click="showCreateModal = true" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
+      <button v-if="currentUser.role.permissions.map((p) => p.type).includes(PERMISSION_TO_POST)" @click="showCreateModal = true" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
         Create New Post
       </button>
     </div>
@@ -28,10 +28,10 @@
           <h2 class="text-lg font-semibold text-gray-800 mb-2">{{ post.description }}</h2>
           <p class="text-xs text-gray-400">{{ formatDate(new Date(post.createdAt)) }}</p>
           <div class="mt-2 flex justify-end space-x-2">
-            <button v-if="currentUser.id === post.userId" @click="editPost(post)" class="text-sm bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 rounded">
+            <button v-if="currentUser.id === post.userId && currentUser.role.permissions.map((p) => p.type).includes(PERMISSION_TO_EDIT)" @click="editPost(post)" class="text-sm bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 rounded">
               Edit
             </button>
-            <button v-if="currentUser.id === post.userId" @click="deletePost(post.id)" class="text-sm bg-red-500 hover:bg-red-600 text-white py-1 px-2 rounded">
+            <button v-if="currentUser.id === post.userId && currentUser.role.permissions.map((p) => p.type).includes(PERMISSION_TO_DELETE)" @click="deletePost(post.id)" class="text-sm bg-red-500 hover:bg-red-600 text-white py-1 px-2 rounded">
               Delete
             </button>
           </div>
@@ -55,6 +55,10 @@ import { useStore } from 'vuex'
 import CreatePost from './CreatePost.vue'
 import EditPost from './EditPost.vue'
 import { formatDate, getPhotoUrl } from '../../utils'
+
+const PERMISSION_TO_POST = 'post:create'
+const PERMISSION_TO_EDIT = 'post:update'
+const PERMISSION_TO_DELETE = 'post:delete'
 
 const store = useStore()
 

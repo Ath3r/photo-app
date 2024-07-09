@@ -11,7 +11,7 @@ export default (app: Router) => {
   )
   // update user
   app.patch(
-    '/update/:id',
+    '/:id',
     isAuthenticated('user:update'),
     usersController.updateUser
   )
