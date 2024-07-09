@@ -15,7 +15,7 @@ export default {
       });
       const [data, error] = await postService.getAllPosts((
         req as RequestWithUser
-      ).user.id, canViewAllPosts, (req.query as any).sort);
+      ).user.id, canViewAllPosts, (req.query as any));
       if (data) {
         return sendSuccess(res, data, StatusCodes.OK);
       }

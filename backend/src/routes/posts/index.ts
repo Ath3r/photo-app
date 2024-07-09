@@ -23,14 +23,14 @@ export default (app: Router) => {
   )
   // update post
   app.patch(
-    '/update/:id',
+    '/:id',
     isAuthenticated('post:update'),
     validatorMiddleware(updatePostSchema),
     postsController.updatePost
   )
   // delete post
   app.delete(
-    '/delete/:id',
+    '/:id',
     isAuthenticated('post:delete'),
     postsController.deletePost
   )

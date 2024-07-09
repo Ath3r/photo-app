@@ -74,11 +74,11 @@ router.beforeEach(async (to, from, next) => {
   const store = useStore()
 
   // Check authentication
-  const isAuthenticated = store.state.user?.user?.id && localStorage.getItem('token') 
+  const isAuthenticated = store.state.userStore.user?.id && localStorage.getItem('token') 
 
   // Check permissions
   const hasPermission = (permission: string) => {
-    const userPermissions = store?.state?.user?.user?.role?.permission || []
+    const userPermissions = store?.state?.userStore.user?.role?.permission || []
     console.log(userPermissions)
     return true
     // return userPermissions.includes(permission)

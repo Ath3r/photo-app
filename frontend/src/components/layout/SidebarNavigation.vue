@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { HomeIcon, UsersIcon, FolderIcon, CalendarIcon, InboxIcon, ChartBarIcon, Bars3Icon, XMarkIcon, ArrowLeftOnRectangleIcon } from '@heroicons/vue/24/outline'
+import { HomeIcon, UsersIcon, Bars3Icon, XMarkIcon, ArrowLeftOnRectangleIcon } from '@heroicons/vue/24/outline'
 
 const route = useRoute()
 const router = useRouter()
@@ -10,18 +10,17 @@ const store = useStore()
 
 const isSidebarOpen = ref(false)
 
-const user = computed(() => store?.state.user.user)
+const user = computed(() => store?.state.userStore.user)
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon, roles: [] },
   { name: 'Users', href: '/users', icon: UsersIcon, roles: ['user:readAll'] },
-  // Add more navigation items as needed
 ]
 
 const filteredNavigation = computed(
   () => navigation.filter(
     item => user.value?.role?.permissions.some(
-      permission => item.roles.length === 0 ? true : item.roles.find( role => role === permission.type)
+      (permission : any) => item.roles.length === 0 ? true : item.roles.find((role: any) => role === permission.type)
     )
   )
 )

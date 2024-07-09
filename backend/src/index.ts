@@ -17,8 +17,12 @@ import routes from './routes';
 const start = async (): Promise<void> => {
   const app = express();
 
+  app.use(cors({
+    origin: '*',
+  }));
+  app.use('/public', express.static('public'));
+
   app.use(helmet());
-  app.use(cors());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(morgan(
@@ -26,7 +30,6 @@ const start = async (): Promise<void> => {
       ? 'dev'
       : 'combined'
   ));
-  app.use(express.static('public'));
 
   app.use('/api/v1', routes());
 

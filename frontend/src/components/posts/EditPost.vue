@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div v-if="editedPost.id" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
       <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
       <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
@@ -9,17 +9,7 @@
             Edit Post
           </h3>
           <div class="mt-2">
-            <input v-model="editedPost.title" type="text" placeholder="Title" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-            <div
-              @dragover.prevent
-              @drop.prevent="onDrop"
-              @click="$refs.fileInput.click()"
-              class="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer"
-            >
-              <p v-if="!editedPost.imageUrl" class="text-gray-500">Drag and drop an image here or click to select</p>
-              <img v-else :src="editedPost.imageUrl" alt="Post image" class="mx-auto max-h-48 object-contain" />
-              <input type="file" @change="onFileSelected" accept="image/*" class="hidden" ref="fileInput">
-            </div>
+            <img :src="getPhotoUrl(editedPost?.url)" alt="Post image" class="mx-auto max-h-48 object-contain" />
             <textarea v-model="editedPost.description" placeholder="Description" class="mt-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"></textarea>
           </div>
         </div>
@@ -38,18 +28,16 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import {  getPhotoUrl } from '../../utils'
+import { useToast } from 'vue-toastification';
+
+const toast = useToast()
 
 const props = defineProps<{
-  post: {
-    id: number;
-    title: string;
-    imageUrl: string;
-    description: string;
-    createdAt: Date;
-  }
+  post: Post | null;
 }>()
 
-const emit = defineEmits(['close', 'post-updated'])
+const emit = defineEmits(['close', 'update'])
 
 const editedPost = ref({ ...props.post })
 
@@ -57,39 +45,14 @@ onMounted(() => {
   editedPost.value = { ...props.post }
 })
 
-const onDrop = (event: DragEvent) => {
-  event.preventDefault();
-  const files = event.dataTransfer?.files;
-  if (files && files.length > 0) {
-    handleFile(files[0]);
-  }
-}
-
-const onFileSelected = (event: Event) => {
-  const files = (event.target as HTMLInputElement).files;
-  if (files && files.length > 0) {
-    handleFile(files[0]);
-  }
-}
-
-const handleFile = (file: File) => {
-  if (file.type.startsWith('image/')) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      editedPost.value.imageUrl = e.target?.result as string;
-    };
-    reader.readAsDataURL(file);
-  } else {
-    alert('Please upload an image file');
-  }
-}
-
-const updatePost = () => {
-  if (!editedPost.value.title || !editedPost.value.imageUrl || !editedPost.value.description) {
-    alert('Please fill in all fields');
+const updatePost = async() => {
+  if (!editedPost.value.description) {
+    toast.error('Please fill in all fields');
     return;
   }
-  
-  emit('post-updated', editedPost.value);
+  emit('update', {
+    description: editedPost.value.description,
+    id: editedPost.value.id,
+  });
 }
 </script>

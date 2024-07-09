@@ -9,15 +9,14 @@
             Create New Post
           </h3>
           <div class="mt-2">
-            <input v-model="title" type="text" placeholder="Title" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
             <div
               @dragover.prevent
               @drop.prevent="onDrop"
-              @click="$refs.fileInput.click()"
+              @click="($refs.fileInput as any).click()"
               class="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer"
             >
-              <p v-if="!imageUrl" class="text-gray-500">Drag and drop an image here or click to select</p>
-              <img v-else :src="imageUrl" alt="Post image" class="mx-auto max-h-48 object-contain" />
+              <p v-if="!url" class="text-gray-500">Drag and drop an image here or click to select</p>
+              <img v-else :src="url" alt="Post image" class="mx-auto max-h-48 object-contain" />
               <input type="file" @change="onFileSelected" accept="image/*" class="hidden" ref="fileInput">
             </div>
             <textarea v-model="description" placeholder="Description" class="mt-2 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"></textarea>
@@ -38,12 +37,16 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useStore } from 'vuex';
+import { useToast } from 'vue-toastification';
 
-const title = ref('')
+const toast = useToast()
+const store = useStore()
 const description = ref('')
-const imageUrl = ref('')
+const url = ref<any | null>(null)
+const file = ref<any | null>(null)
 
-const emit = defineEmits(['close', 'post-created'])
+const emit = defineEmits(['close'])
 
 const onDrop = (event: DragEvent) => {
   event.preventDefault();
@@ -60,32 +63,34 @@ const onFileSelected = (event: Event) => {
   }
 }
 
-const handleFile = (file: File) => {
-  if (file.type.startsWith('image/')) {
+const handleFile = (selectedFile: File) => {
+  if (selectedFile.type.startsWith('image/')) {
     const reader = new FileReader();
+    file.value = selectedFile
     reader.onload = (e) => {
-      imageUrl.value = e.target?.result as string;
+      url.value = e.target?.result as string;
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(selectedFile);
   } else {
-    alert('Please upload an image file');
+    toast.error('Please upload an image file');
   }
 }
 
-const createPost = () => {
-  if (!title.value || !imageUrl.value || !description.value) {
-    alert('Please fill in all fields');
+const createPost = async () => {
+  if (!url.value || !description.value) {
+    toast.error('Please fill in all fields');
     return;
   }
   
-  const newPost = {
-    id: Date.now(),
-    title: title.value,
-    imageUrl: imageUrl.value,
-    description: description.value,
-    createdAt: new Date()
-  };
-  
-  emit('post-created', newPost);
+  const newPost = new FormData();
+  newPost.append('file', file.value);
+  newPost.append('description', description.value);
+  const post = await store.dispatch('createPost', newPost);
+  if (post) {
+    await store.dispatch('fetchPosts', { sort : {
+      createdAt: 'desc'
+    }})
+    emit('close')
+  }
 }
 </script>

@@ -4,20 +4,19 @@ import { CreatePostInput } from '../types';
 const getAllPosts = async (
   userId: number,
   getOwnPostsOnly: boolean = false,
-  sort: string = 'createdAt_DESC',
+  sort: object = {
+    createdAt: 'desc',
+  },
 ) : Promise<[any| null, string | null]> => {
   const query: any = {};
   if (getOwnPostsOnly) {
     query.userId = userId;
   }
-  const order = sort.split('_');
-  const orderBy = {
-    [order[0]]: order[1] || 'desc',
-  }
-  console.log(orderBy);
   const posts = await prisma.post.findMany({
     where: query,
-    // orderBy,
+    orderBy : [
+      sort,
+    ],
     include: {
       user: {
         select: {

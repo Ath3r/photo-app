@@ -2,10 +2,10 @@ import multer from 'multer';
 
 const storage = multer.diskStorage({
   destination: (_req: any, _file: Express.Multer.File, cb: Function) => {
-    cb(null, 'public/');
+    cb(null, 'public/upload');
   },
   filename: (_req: any, file: Express.Multer.File, cb: Function) => {
-    cb(null, file.originalname);
+    cb(null, `${Date.now()}-${file.originalname}`);
   },
 });
 
