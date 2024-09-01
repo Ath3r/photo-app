@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@heroicons/vue": "^2.1.4",
-    "axios": "^1.7.2",
+    "axios": "^1.7.4",
     "vue": "^3.4.29",
     "vue-router": "^4.4.0",
     "vue-spinner": "^1.0.4",
